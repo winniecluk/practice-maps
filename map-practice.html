@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <style>
+  /* Always set the map height explicitly to define the size of the div
+   * element that contains the map. */
+  #map {
+    height: 100%;
+  }
+  /* Optional: Makes the sample page fill the window. */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  </style>
+</head>
+<body>
+
+  <div id="map">
+  </div>
+
+  <script>
+    var crd;
+    var map;
+    var service;
+    var currentLoc;
+    var startConfig = {
+      center: {lat: 34.0407130, lng: -118.2467690},
+      zoom: 10
+    };
+    // render map first, and then change to current location
+
+    function checkCurrentLoc(map, cb){
+      if (navigator){
+        navigator.geolocation.getCurrentPosition(function(pos){
+          var crd = pos.coords;
+          console.log('this is crd: ');
+          console.log(crd);
+          currentLoc = new google.maps.LatLng({lat: crd.latitude, lng: crd.longitude})
+          map.setCenter(currentLoc);
+          map.setZoom(15);
+          cb(map, currentLoc);
+        }) // closes navigator callback
+      } else { // closes navigator if
+        cb(map);
+      }
+    }
+
+
+    // this object should be used to find nearest Metro stations
+    function initMap(){
+      map = new google.maps.Map(document.getElementById('map'), startConfig
+        );
+      var transitLayer = new google.maps.TransitLayer();
+      transitLayer.setMap(map);
+      checkCurrentLoc(map, getMetroLoc);
+    }
+
+    function getMetroLoc(map, currentLoc){
+      service = new google.maps.places.PlacesService(map);
+      if (currentLoc){
+        var request = {
+          bounds: currentLoc,
+          radius: 50000
+        };
+        service.radarSearch(request,)
+      }
+    }
+
+    function processResults(results, status){
+      if (status !== google.maps.places.PlacesServiceStatus.OK){
+        console.log(status);
+        return;
+      }
+      for (var i = 0, result; result = results[i]; i++){
+        addMarker(result);
+      }
+    }
+
+    function addMarker(place){
+      var marker = new google.maps.Marker({
+        map: map,
+        position: place.geometry.location,
+        icon : {
+          url: 'https://developers.google.com/maps/documentation/javascript/images/circle.png',
+        anchor: new google.maps.Point(10, 10),
+        scaledSize: new google.maps.Size(10, 17)
+        }
+      });
+      // google.maps.event.addListener(marker, 'click', function(){
+      //   service.getDetails(place, function(result, status){
+      //     if (status !== google.maps.places.PlacesServiceStatus.OK){
+      //       console.log(status);
+      //       return;
+      //     }
+      //     infoWindow.setContent(result.name);
+      //     infoWindow.open(map, marker);
+      //   });
+      // });
+    }
+
+
+    // setContent to marker?
+
+// map method
+// panTo(latLng:LatLng|LatLngLiteral)
+
+//  map.setCenter(new google.maps.LatLng(-34, 151));
+//  map.setCenter({lat: -34, lng: 151});
+// The constructor also accepts literal objects, and converts them to instances of LatLng:
+//  myLatLng = new google.maps.LatLng({lat: -34, lng: 151});
+
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdPnAPE-Kqy_VWKiFtX8Zm4b0T7wyyZ38&libraries=places&callback=initMap"
+  async defer></script>
+
+</body>
+</html>
